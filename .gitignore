@@ -1,0 +1,32 @@
+# ── Secrets ──
+.env
+
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+venv/
+.venv/
+
+# ── Data (too large for GitHub) ──
+transfermarkt-datasets/
+Date - meciuri/
+
+# ── Runtime / Generated ──
+*.db
+processed_metrics.pkl
+tm_response.json
+
+# ── Scratch / Debug ──
+scratch/
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ──
+Thumbs.db
+.DS_Store

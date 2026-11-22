@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>U-Scout AI | Universitatea Cluj</title>
+    <meta name="description" content="AI-powered football scouting and analytics platform for Universitatea Cluj.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+
+        :root {
+            --font-geist: 'Geist', sans-serif;
+        }
+
+        .font-geist {
+            font-family: var(--font-geist);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-overlay"></div>
+
+    <div id="dashboard-container" class="hidden">
+        <!-- ═══════════════════════════════════════ NAVBAR ═══════════════════════════════════════ -->
+        <nav class="navbar" id="main-nav">
+            <div class="nav-left">
+                <a href="#" data-view="home"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: .75rem;">
+                    <img src="assets/u_cluj_logo.png" alt="U Cluj 1919" class="logo">
+                    <span class="brand-name">U-Scout AI</span>
+                </a>
+            </div>
+            <div class="nav-center">
+                <a href="#" class="nav-link active" data-view="home">Home</a>
+                <a href="#" class="nav-link" data-view="scouting">Scouting & Analiză</a>
+                <a href="#" class="nav-link" data-view="comparator">Comparator Tactic</a>
+            </div>
+            <div class="nav-right">
+                <a href="#" class="nav-btn btn-outline" id="nav-auth-btn" data-view="login">Login / Sign Up</a>
+            </div>
+        </nav>
+
+        <!-- ═══════════════════════════════════════ VIEW: HOME ═══════════════════════════════════════ -->
+        <div class="view active" id="view-home">
+            <main class="hero-section">
+                <h1 class="headline">Discover the Future of 'U'.</h1>
+                <p class="sub-headline">AI-driven talent identification. Filter performance data, analyze growth
+                    potential, and find the perfect fit for Universitatea Cluj.</p>
+                <div class="search-container relative">
+                    <div class="search-bar">
+                        <i data-lucide="sparkles" class="icon-sparkle"></i>
+                        <input type="text"
+                            placeholder="Ask AI: Find me a U21 left-footed center back with high interception rates..."
+                            class="search-input" id="hero-search">
+                        <div class="search-actions">
+                            <button class="icon-btn relative" id="btn-open-ai-filters" title="Filters">
+                                <i data-lucide="sliders-horizontal"></i>
+                                <div id="filter-indicator"
+                                    class="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full border-2 border-[#111] hidden">
+                                </div>
+                            </button>
+                            <button class="icon-btn primary" title="Search" id="hero-search-btn"><i
+                                    data-lucide="search"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Premium AI Filter Menu -->
+                    <div id="ai-filter-menu" class="ai-filter-dropdown hidden animate-slide-down">
+                        <div class="filter-menu-inner p-8">
+                            <h3
+                                class="text-sm font-bold text-neutral-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="zap" class="w-4 h-4 text-yellow-400"></i> Premium AI Scouting Filters
+                            </h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                                <!-- Col 1: Bio & Budget -->
+                                <div class="space-y-6">
+                                    <div class="filter-item-group">
+                                        <label class="premium-label">Interval Vârstă</label>
+                                        <div class="flex items-center gap-3">
+                                            <input type="number" id="ai-filter-age-min" class="premium-input"
+                                                placeholder="Min" min="16" max="40">
+                                            <span class="text-neutral-600">-</span>
+                                            <input type="number" id="ai-filter-age-max" class="premium-input"
+                                                placeholder="Max" min="16" max="40">
+                                        </div>
+                                    </div>
+                                    <div class="filter-item-group">
+                                        <label class="premium-label">Buget Transfer (€)</label>
+                                        <div class="flex items-center gap-3">
+                                            <input type="number" id="ai-filter-budget-min" class="premium-input"
+                                                placeholder="Min">
+                                            <input type="number" id="ai-filter-budget-max" class="premium-input"
+                                                placeholder="Max">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Col 2: Position & Profile -->
+                                <div class="space-y-6">
+                                    <div class="filter-item-group">
+                                        <label class="premium-label">Poziții Exacte</label>
+                                        <div class="grid grid-cols-4 gap-2">
+                                            <label class="pos-chip"><input type="checkbox" name="ai-pos" value="GK"
+                                                    class="hidden"> <span>GK</span></label>
+                                            <label class="pos-chip"><input type="checkbox" name="ai-pos" value="CB"
+                                                    class="hidden"> <span>CB</span></label>
+                                            <label class="pos-chip"><input type="checkbox" name="ai-pos" value="LB"
+                                                    class="hidden"> <span>LB</span></label>
+                                            <label class="pos-chip"><input type="checkbox" name="ai-pos" value="RB"
+                                                    class="hidden"> <span>RB</span></label>
+                                            <label class="pos-chip"><input type="checkbox" name="ai-pos" value="CDM"
+                                                    class="hidden"> <span>CDM</span></label>
+                                            <label class="pos-chip"><input type="checkbox" name="ai-pos" value="CM"
+                                                    class="hidden"> <span>CM</span></label>
+                                            <label class="pos-chip"><input type="checkbox" name="ai-pos" value="CAM"
+                                                    class="hidden"> <span>CAM</span></label>
+                                            <label class="pos-chip"><input type="checkbox" name="ai-pos" value="LW"
+                                                    class="hidden"> <span>LW</span></label>
+                                            <label class="pos-chip"><input type="checkbox" name="ai-pos" value="RW"
+                                                    class="hidden"> <span>RW</span></label>
+                                            <label class="pos-chip"><input type="checkbox" name="ai-pos" value="ST"
+                                                    class="hidden"> <span>ST</span></label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Col 3: Details & Skills -->
+                                <div class="space-y-6">
+                                    <div class="filter-item-group">
+                                        <label class="premium-label">Picior Preferat</label>
+                                        <div class="flex bg-black/40 rounded-xl p-1 border border-white/5">
+                                            <label
+                                                class="flex-1 text-center py-2 text-[10px] cursor-pointer rounded-lg transition-all has-[:checked]:bg-white/10 has-[:checked]:text-white text-neutral-500">
+                                                <input type="radio" name="ai-foot" value="Stâng" class="hidden"> Stâng
+                                            </label>
+                                            <label
+                                                class="flex-1 text-center py-2 text-[10px] cursor-pointer rounded-lg transition-all has-[:checked]:bg-white/10 has-[:checked]:text-white text-neutral-500">
+                                                <input type="radio" name="ai-foot" value="Drept" class="hidden"> Drept
+                                            </label>
+                                            <label
+                                                class="flex-1 text-center py-2 text-[10px] cursor-pointer rounded-lg transition-all has-[:checked]:bg-white/10 has-[:checked]:text-white text-neutral-500">
+                                                <input type="radio" name="ai-foot" value="Ambele" class="hidden"> Ambele
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="filter-item-group">
+                                        <label class="premium-label">Abilități Cheie</label>
+                                        <div class="flex flex-wrap gap-2">
+                                            <label class="skill-checkbox"><input type="checkbox" name="ai-skill"
+                                                    value="Viteză" class="hidden"> <span>Viteză</span></label>
+                                            <label class="skill-checkbox"><input type="checkbox" name="ai-skill"
+                                                    value="Joc Aerian" class="hidden"> <span>Joc Aerian</span></label>
+                                            <label class="skill-checkbox"><input type="checkbox" name="ai-skill"
+                                                    value="Finalizare" class="hidden"> <span>Finalizare</span></label>
+                                            <label class="skill-checkbox"><input type="checkbox" name="ai-skill"
+                                                    value="Dribling" class="hidden"> <span>Dribling</span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center mt-10 pt-8 border-t border-white/5">
+                                <button class="btn-ghost-premium" id="btn-reset-ai-filters">Resetează</button>
+                                <button class="btn-apply-premium" id="btn-apply-ai-filters">Aplică Filtrele AI</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- AI Thinking State (Hidden by default) -->
+            <div id="hero-ai-thinking"
+                class="hidden max-w-2xl mx-auto mt-8 p-8 bg-[#0a0a0a]/40 backdrop-blur-xl border border-white/5 rounded-2xl text-center animate-fade-in">
+                <div class="flex flex-col items-center gap-6">
+                    <div class="relative">
+                        <div class="w-12 h-12 border-2 border-white/10 border-t-white rounded-full animate-spin"></div>
+                        <div class="absolute inset-0 bg-white/10 blur-xl rounded-full animate-pulse"></div>
+                    </div>
+                    <div class="space-y-2">
+                        <p id="ai-thinking-text" class="text-white font-medium text-lg min-h-[1.75rem]">Analizez
+                            promptul natural...</p>
+                        <div class="flex justify-center gap-1">
+                            <div class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce"></div>
+                            <div class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.2s]">
+                            </div>
+                            <div class="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.4s]">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Results Display (Hidden by default) -->
+            <div id="hero-ai-results" class="hidden max-w-5xl mx-auto mt-12 px-6 pb-12 animate-slide-up">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white font-geist">Match-uri AI pentru rolul de Playmaker</h2>
+                        <p class="text-neutral-500 text-sm mt-1">Profil Referință: <span class="text-neutral-300">Dan
+                                Nistor (36 ani, CM)</span></p>
+                    </div>
+                    <button onclick="resetHeroAI()"
+                        class="text-xs text-neutral-500 hover:text-white transition-colors flex items-center gap-2">
+                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Resetează Căutarea
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="hero-ai-cards">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+            <section class="quick-insights" id="hero-widgets">
+                <div class="insight-card" data-goto="scouting">
+                    <div class="card-icon-wrapper"><i data-lucide="user" class="card-icon"></i></div>
+                    <div class="card-content">
+                        <h3>Top AI Matches</h3><span class="match-score">95% Match</span>
+                    </div>
+                </div>
+                <div class="insight-card" data-goto="ai-match">
+                    <div class="card-icon-wrapper"><i data-lucide="trending-up" class="card-icon"></i></div>
+                    <div class="card-content">
+                        <h3>High Growth Potential</h3><span class="sub-text">Predictive tracking</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ═══════════════════════════════════════ VIEW: SCOUTING AVANSAT ═══════════════════════════════════════ -->
+        <div class="view" id="view-scouting">
+            <div class="scouting-layout">
+                <!-- Sidebar Filters -->
+                <aside class="filter-sidebar scrollable-sidebar">
+                    <div class="sidebar-header">
+                        <i data-lucide="filter" class="sidebar-icon"></i>
+                        <h2>Filtre Avansate</h2>
+                    </div>
+
+                    <!-- Vârstă Range -->
+                    <div class="filter-group">
+                        <label class="filter-label">Vârstă (Interval)</label>
+                        <div class="flex gap-2">
+                            <input type="number" class="filter-input w-1/2" id="filter-age-min" placeholder="Min"
+                                min="16" max="40">
+                            <input type="number" class="filter-input w-1/2" id="filter-age-max" placeholder="Max"
+                                min="16" max="40">
+                        </div>
+                    </div>
+
+                    <!-- Valoare Range -->
+                    <div class="filter-group">
+                        <label class="filter-label">Valoare Piață (€)</label>
+                        <div class="flex gap-2">
+                            <input type="number" class="filter-input w-1/2" id="filter-val-min" placeholder="Min €">
+                            <input type="number" class="filter-input w-1/2" id="filter-val-max" placeholder="Max €">
+                        </div>
+                    </div>
+
+                    <!-- Poziție & Profil -->
+                    <div class="filter-group">
+                        <label class="filter-label">Poziție Principală</label>
+                        <select class="filter-select" id="filter-position">
+                            <option value="">Toate pozițiile</option>
+                            <option value="GK">Portar (GK)</option>
+                            <option value="CB">Fundaș Central (CB)</option>
+                            <option value="LB">Fundaș Stânga (LB)</option>
+                            <option value="RB">Fundaș Dreapta (RB)</option>
+                            <option value="CDM">Mijlocaș Defensiv (CDM)</option>
+                            <option value="CM">Mijlocaș Central (CM)</option>
+                            <option value="CAM">Mijlocaș Ofensiv (CAM)</option>
+                            <option value="LW">Extremă Stânga (LW)</option>
+                            <option value="RW">Extremă Dreapta (RW)</option>
+                            <option value="ST">Atacant (ST)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group" id="tactical-profile-group">
+                        <label class="filter-label">Profil Tactic</label>
+                        <select class="filter-select" id="filter-tactical-profile">
+                            <option value="">Selectează poziția...</option>
+                        </select>
+                    </div>
+
+                    <!-- Picior de Bază -->
+                    <div class="filter-group">
+                        <label class="filter-label">Picior de Bază</label>
+                        <div class="flex bg-neutral-900 rounded-lg p-1 border border-white/5">
+                            <label
+                                class="flex-1 text-center py-1.5 text-[10px] cursor-pointer rounded-md transition-all hover:bg-white/5 has-[:checked]:bg-white/10 has-[:checked]:text-white text-neutral-500">
+                                <input type="radio" name="foot" value="Stâng" class="hidden"> Stâng
+                            </label>
+                            <label
+                                class="flex-1 text-center py-1.5 text-[10px] cursor-pointer rounded-md transition-all hover:bg-white/5 has-[:checked]:bg-white/10 has-[:checked]:text-white text-neutral-500">
+                                <input type="radio" name="foot" value="Drept" class="hidden"> Drept
+                            </label>
+                            <label
+                                class="flex-1 text-center py-1.5 text-[10px] cursor-pointer rounded-md transition-all hover:bg-white/5 has-[:checked]:bg-white/10 has-[:checked]:text-white text-neutral-500">
+                                <input type="radio" name="foot" value="Ambele" class="hidden"> Ambele
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Contract Rămas -->
+                    <div class="filter-group">
+                        <label class="filter-label">Contract Rămas</label>
+                        <div class="flex gap-2">
+                            <input type="number" class="filter-input w-2/3" id="filter-contract-val"
+                                placeholder="Ex: 2">
+                            <select class="filter-select w-1/3 p-1 text-[10px]" id="filter-contract-unit">
+                                <option value="ani">Ani</option>
+                                <option value="luni">Luni</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Abilități Specifice -->
+                    <div class="filter-group">
+                        <label class="filter-label">Abilități Specifice</label>
+                        <div class="relative">
+                            <input type="text" class="filter-input w-full pr-8" id="skill-search"
+                                placeholder="Căutare abilitate...">
+                            <i data-lucide="plus" class="absolute right-2 top-2.5 w-3 h-3 text-neutral-500"></i>
+                        </div>
+                        <div id="selected-skills" class="flex flex-wrap gap-1.5 mt-2">
+                            <!-- Tags added here -->
+                        </div>
+                    </div>
+
+                    <button class="btn-apply-filters mt-4" id="btn-apply-scouting">
+                        <i data-lucide="refresh-cw"></i> Actualizează Lista
+                    </button>
+                </aside>
+
+                <!-- Results Area -->
+                <div class="results-area">
+                    <div class="results-header flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">Rezultate Scouting</h2>
+                            <span class="text-xs text-neutral-500" id="scouting-count">24 jucători găsiți</span>
+                        </div>
+
+                        <!-- Grid/List Toggle -->
+                        <div class="flex bg-neutral-900 rounded-lg p-1 border border-white/5">
+                            <button id="toggle-grid"
+                                class="p-1.5 rounded-md transition-all bg-white/10 text-white shadow-sm"
+                                title="Grid View">
+                                <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                            </button>
+                            <button id="toggle-list"
+                                class="p-1.5 rounded-md transition-all text-neutral-500 hover:text-white"
+                                title="List View">
+                                <i data-lucide="list" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Global Search Bar -->
+                    <div class="mb-6 relative">
+                        <i data-lucide="search"
+                            class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500"></i>
+                        <input type="text" id="global-search" placeholder="Caută manual jucător după nume..."
+                            class="w-full bg-[#0a0a0a] border border-white/5 rounded-2xl py-3.5 pl-12 pr-6 text-sm text-white focus:outline-none focus:border-white/20 transition-all shadow-2xl placeholder:text-neutral-600">
+                    </div>
+
+                    <!-- Grid View -->
+                    <div class="player-grid" id="scouting-grid">
+                        <!-- Rendered by JS -->
+                    </div>
+
+                    <!-- List/Table View (Hidden by default) -->
+                    <div class="table-wrapper mt-6 hidden" id="scouting-list">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" data-sort="id"># <span class="sort-indicator"></span></th>
+                                    <th class="sortable" data-sort="name">Jucător <span class="sort-indicator"></span>
+                                    </th>
+                                    <th class="sortable" data-sort="pos">Poz. <span class="sort-indicator"></span></th>
+                                    <th class="sortable" data-sort="age">Vârstă <span class="sort-indicator"></span>
+                                    </th>
+                                    <th class="sortable" data-sort="club">Club <span class="sort-indicator"></span></th>
+                                    <th class="sortable" data-sort="value">Valoare <span class="sort-indicator"></span>
+                                    </th>
+                                    <th class="sortable" data-sort="aiScore">Potențial AI <span
+                                             class="sort-indicator"></span></th>
+                                    <th>Acțiuni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scouting-tbody">
+                                <!-- Rendered by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination: Load More -->
+                    <div id="pagination-container" class="flex flex-col items-center justify-center mt-12 mb-8 hidden">
+                        <button id="btn-load-more" class="flex items-center gap-3 px-8 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white font-medium transition-all group active:scale-95">
+                            <i data-lucide="plus" class="w-4 h-4 group-hover:rotate-90 transition-transform"></i>
+                            <span>Încarcă mai mulți jucători</span>
+                            <div id="load-more-spinner" class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin hidden"></div>
+                        </button>
+                        <p id="pagination-info" class="text-xs text-neutral-600 mt-4 uppercase tracking-widest">Afișez 20 din 588 jucători</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════ VIEW: AI MATCH ═══════════════════════════════════════ -->
+        <div class="view" id="view-ai-match">
+            <div class="ai-match-container">
+                <div class="ai-match-header">
+                    <h2 class="section-title"><i data-lucide="sparkles" class="section-icon"></i> AI Match — Jucători
+                        Similari</h2>
+                    <p class="section-subtitle">Introduceți un jucător și sistemul va identifica alternative mai tinere
+                        și mai accesibile cu un profil statistic similar.</p>
+                </div>
+
+                <div class="ai-search-bar-wrap">
+                    <div class="search-bar ai-search">
+                        <i data-lucide="user-search" class="icon-sparkle"></i>
+                        <input type="text" placeholder="Caută jucător... ex: Dan Nistor" class="search-input"
+                            id="ai-match-input" value="Dan Nistor">
+                        <button class="icon-btn primary" id="btn-ai-search">
+                            <i data-lucide="sparkles" class="btn-ai-icon"></i>
+                            <span class="btn-ai-spinner"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Filters Row -->
+                <div class="ai-quick-filters">
+                    <div class="qf-item">
+                        <i data-lucide="calendar" class="qf-icon"></i>
+                        <input type="number" class="qf-input" id="ai-filter-age" placeholder="Vârstă max (ex: 22)">
+                    </div>
+                    <div class="qf-item">
+                        <i data-lucide="wallet" class="qf-icon"></i>
+                        <input type="number" class="qf-input" id="ai-filter-budget" placeholder="Buget max (€)">
+                    </div>
+                    <div class="qf-item">
+                        <div class="toggle-row compact">
+                            <span class="qf-toggle-label">Doar U21</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="ai-filter-u21-toggle" checked>
+                                <span class="toggle-slider green"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <span class="qf-hint">Filtrele sunt aplicate la căutare</span>
+                </div>
+
+                <!-- Reference Player -->
+                <div class="reference-player-bar" id="reference-player">
+                    <div class="ref-avatar">DN</div>
+                    <div class="ref-info">
+                        <span class="ref-name">Dan Nistor</span>
+                        <span class="ref-meta">CM · 36 ani · Valoare: €150.000</span>
+                    </div>
+                    <span class="ref-badge">Referință</span>
+                </div>
+
+                <!-- AI Match Cards -->
+                <div class="ai-cards-row" id="ai-cards-container">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ═══════════════════════════════════════ VIEW: COMPARATOR TACTIC ═══════════════════════════════════════ -->
+        <div class="view" id="view-comparator">
+            <div class="tac-comparator">
+
+                <!-- ── Header ── -->
+                <div class="tac-page-header">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                            <i data-lucide="crosshair" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white font-geist tracking-tight">Comparator Tactic</h2>
+                            <p class="text-xs text-neutral-500">Evaluare tactică — Jucător vs ADN-ul clubului</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Main 3-column grid ── -->
+                <div class="tac-grid">
+
+                    <!-- ╔═══ LEFT PANEL: ADN Tactic U Cluj ═══╗ -->
+                    <div class="tac-panel tac-panel-left">
+                        <div class="tac-panel-header">
+                            <div class="flex items-center gap-3 mb-4">
+                                <img src="assets/u_cluj_logo.png" alt="U Cluj"
+                                    class="w-8 h-8 rounded-lg bg-white/5 object-contain p-0.5">
+                                <div>
+                                    <h3 class="text-sm font-bold text-white">ADN Tactic</h3>
+                                    <span class="text-[10px] text-neutral-500 uppercase tracking-widest">Universitatea
+                                        Cluj</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-5">
+                            <!-- System Select -->
+                            <div>
+                                <label class="tac-label">Sistem de Joc</label>
+                                <select class="tac-select" id="tac-system">
+                                    <option value="4-2-3-1">4-2-3-1</option>
+                                    <option value="4-3-3">4-3-3</option>
+                                    <option value="4-4-2">4-4-2</option>
+                                </select>
+                            </div>
+
+                            <!-- Position Select -->
+                            <div>
+                                <label class="tac-label">Poziție Căutată</label>
+                                <select class="tac-select" id="tac-position">
+                                    <option value="ST">Atacant Central (ST)</option>
+                                    <option value="CAM">Mijlocaș Ofensiv (CAM)</option>
+                                    <option value="LW">Extremă Stânga (LW)</option>
+                                    <option value="RW">Extremă Dreapta (RW)</option>
+                                    <option value="CM">Mijlocaș Central (CM)</option>
+                                    <option value="CDM">Mijlocaș Defensiv (CDM)</option>
+                                    <option value="CB">Fundaș Central (CB)</option>
+                                    <option value="LB">Fundaș Stânga (LB)</option>
+                                    <option value="RB">Fundaș Dreapta (RB)</option>
+                                    <option value="GK">Portar (GK)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Tactical Requirements -->
+                        <div class="mt-6">
+                            <h4 class="tac-label mb-3">Cerințe Tactice Cheie</h4>
+                            <div class="space-y-2" id="tac-requirements">
+                                <!-- Rendered by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Tactical Principles -->
+                        <div class="mt-6 pt-5 border-t border-white/5">
+                            <h4 class="tac-label mb-3">Principii Fundamentale</h4>
+                            <div class="space-y-1.5">
+                                <div class="tac-principle"><i data-lucide="shield" class="w-3 h-3 text-blue-400"></i>
+                                    Construcție de la portar</div>
+                                <div class="tac-principle"><i data-lucide="zap" class="w-3 h-3 text-yellow-400"></i>
+                                    Contra-pressing (O→D)</div>
+                                <div class="tac-principle"><i data-lucide="fast-forward"
+                                        class="w-3 h-3 text-green-400"></i> Contraatac rapid (D→O)</div>
+                                <div class="tac-principle"><i data-lucide="layers" class="w-3 h-3 text-purple-400"></i>
+                                    Bloc compact defensiv</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ╔═══ CENTER: Radar Chart ═══╗ -->
+                    <div class="tac-panel tac-panel-center">
+                        <div class="tac-radar-wrap">
+                            <canvas id="tac-radar-chart"></canvas>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="flex items-center justify-center gap-6 mt-4">
+                            <span class="flex items-center gap-2 text-[11px] text-neutral-400">
+                                <span class="w-3 h-3 rounded-full bg-white/30 border border-white/50"></span> Standard U
+                                Cluj
+                            </span>
+                            <span class="flex items-center gap-2 text-[11px] text-neutral-400">
+                                <span class="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-400"></span>
+                                Jucător Țintă
+                            </span>
+                        </div>
+
+                        <!-- Match Score (appears below radar) -->
+                        <div class="tac-match-score-container mt-6" id="tac-match-container">
+                            <div class="tac-match-score-ring">
+                                <canvas id="tac-match-gauge" width="120" height="120"></canvas>
+                                <div class="tac-match-score-inner">
+                                    <span class="tac-match-pct" id="tac-match-pct">—</span>
+                                    <span class="tac-match-label">Tactical Fit</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ╔═══ RIGHT PANEL: Analiză Jucător Țintă ═══╗ -->
+                    <div class="tac-panel tac-panel-right">
+                        <div class="tac-panel-header">
+                            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                                <i data-lucide="user-search" class="w-4 h-4 text-emerald-400"></i> Jucător Țintă
+                            </h3>
+                        </div>
+
+                        <!-- Player Select / Autocomplete -->
+                        <div class="mb-5 relative">
+                            <label class="tac-label">Caută Jucător</label>
+                            <div class="relative">
+                                <input type="text" id="tac-player-search" class="w-full bg-neutral-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="Caută jucător (ex: Dan Nistor)..." autocomplete="off">
+                                <i data-lucide="search" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500"></i>
+                            </div>
+                            <div id="tac-autocomplete-results" class="absolute z-50 w-full mt-1 bg-neutral-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl hidden max-h-48 overflow-y-auto">
+                                <!-- Results rendered by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Player Card -->
+                        <div class="tac-player-card" id="tac-player-card">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="tac-player-avatar" id="tac-player-avatar">?</div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white" id="tac-player-name">—</h3>
+                                    <p class="text-[11px] text-neutral-500" id="tac-player-meta">Selectează un jucător
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Stat Bars (Tactical) -->
+                            <div class="space-y-3 mt-4" id="tac-player-bars">
+                                <!-- Rendered by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ╔═══ BOTTOM: AI Tactical Verdict ═══╗ -->
+                <div class="tac-verdict" id="tac-verdict">
+                    <div class="tac-verdict-header">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <span class="text-[10px] text-emerald-400 uppercase font-bold tracking-widest">U-Scout AI
+                                Tactical Verdict</span>
+                        </div>
+                    </div>
+                    <p class="tac-verdict-text" id="tac-verdict-text">
+                        Selectează un sistem de joc și un jucător pentru a genera analiza tactică.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div> <!-- end of dashboard-container -->
+    </div>
+
+    <!-- ═══════════════════════════════════════ MODAL: RISK MATRIX ═══════════════════════════════════════ -->
+    <div id="modal-overlay" class="modal-overlay hidden"></div>
+    <div id="player-modal" class="player-modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()"><i data-lucide="x"></i></button>
+
+            <div class="modal-grid">
+                <!-- Header: Profil & Psihologie -->
+                <div
+                    class="modal-header-section flex flex-col md:flex-row gap-8 items-start border-b border-white/5 pb-8">
+                    <div class="flex items-center gap-6">
+                        <div id="modal-player-avatar"
+                            class="w-24 h-24 rounded-2xl bg-neutral-900 border border-white/10 flex items-center justify-center text-3xl font-bold text-white">
+                            ??</div>
+                        <div class="space-y-1">
+                            <h2 id="modal-player-name" class="text-3xl font-bold text-white font-geist">Player Name</h2>
+                            <p id="modal-player-meta" class="text-neutral-400">Position · Age · Club</p>
+
+                            <!-- Psychological Tags -->
+                            <div id="modal-psych-tags" class="flex gap-2 pt-2">
+                                <!-- Rendered by JS -->
+                            </div>
+
+                            <div class="max-w-xs bg-white/5 border border-white/10 p-4 rounded-xl mt-4">
+                                <h4 class="text-[10px] text-neutral-500 uppercase font-bold mb-2 tracking-widest flex items-center gap-2">
+                                    <i data-lucide="brain-circuit" class="w-3 h-3 text-purple-400"></i> AI Character Summary
+                                </h4>
+                                <p id="modal-character-summary" class="text-xs text-neutral-300 leading-relaxed">Analiză psihologică în curs...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 flex flex-col items-end justify-start">
+                        <div class="flex flex-col items-center">
+                            <div class="relative w-24 h-24">
+                                <canvas id="risk-gauge-chart"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span id="modal-risk-value" class="text-xl font-bold text-white">0%</span>
+                                    <span class="text-[8px] text-neutral-500 uppercase tracking-tighter">Risc Acomodare</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Body: Charts & Timeline -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 border-b border-white/5 pb-8">
+                    <div class="bg-black/20 border border-white/5 p-6 rounded-2xl flex flex-col">
+                        <h3 class="text-xs font-bold text-neutral-400 mb-6 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-400"></i> Statistici & Profil Jucător
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-[200px]">
+                            <!-- Left: Stats Grid -->
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="bg-neutral-900/50 p-3 rounded-lg border border-white/5 flex flex-col justify-center">
+                                    <span class="text-neutral-500 uppercase text-[9px] font-bold tracking-widest mb-1">Goluri</span>
+                                    <span id="modal-stat-goals" class="text-lg font-semibold text-white">0</span>
+                                </div>
+                                <div class="bg-neutral-900/50 p-3 rounded-lg border border-white/5 flex flex-col justify-center">
+                                    <span class="text-neutral-500 uppercase text-[9px] font-bold tracking-widest mb-1">Pase Decisive</span>
+                                    <span id="modal-stat-assists" class="text-lg font-semibold text-white">0</span>
+                                </div>
+                                <div class="bg-neutral-900/50 p-3 rounded-lg border border-white/5 flex flex-col justify-center">
+                                    <span class="text-neutral-500 uppercase text-[9px] font-bold tracking-widest mb-1">Clean Sheets</span>
+                                    <span id="modal-stat-cleansheets" class="text-lg font-semibold text-white">0</span>
+                                </div>
+                                <div class="bg-neutral-900/50 p-3 rounded-lg border border-white/5 flex flex-col justify-center">
+                                    <span class="text-neutral-500 uppercase text-[9px] font-bold tracking-widest mb-1 flex items-center gap-1">Cartonașe <span class="w-2 h-3 bg-yellow-400 rounded-sm"></span><span class="w-2 h-3 bg-red-500 rounded-sm"></span></span>
+                                    <span class="text-lg font-semibold text-white"><span id="modal-stat-yellows">0</span> / <span id="modal-stat-reds">0</span></span>
+                                </div>
+                            </div>
+                            <!-- Right: Radar Chart -->
+                            <div class="relative w-full h-full min-h-[200px]">
+                                <canvas id="player-stats-radar-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/20 border border-white/5 p-6 rounded-2xl">
+                        <h3
+                            class="text-xs font-bold text-neutral-400 mb-6 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="globe" class="w-4 h-4 text-blue-400"></i> Adaptability & Integration Factors
+                        </h3>
+                        <div id="modal-integration-factors" class="space-y-4">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer: Timeline & Decision Matrix -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                    <div class="lg:col-span-2 space-y-8">
+                        <div class="bg-black/20 border border-white/5 p-6 rounded-2xl h-full">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3
+                                    class="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
+                                    <i data-lucide="history" class="w-4 h-4 text-amber-400"></i> Istoric Transferuri &
+                                    Loialitate
+                                </h3>
+                                <div id="modal-loyalty-badge">
+                                    <!-- AI Insight Badge Rendered by JS -->
+                                </div>
+                            </div>
+
+                            <div class="relative pl-8 space-y-8 before:absolute before:left-[21px] before:top-2 before:bottom-2 before:w-[1px] before:bg-white/10"
+                                id="modal-transfer-timeline">
+                                <!-- Vertical Timeline Rendered by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Decision Matrix: Pros & Cons -->
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+                        <h3 class="text-xs font-bold text-neutral-400 mb-6 uppercase tracking-wider">AI Decision Matrix
+                        </h3>
+
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="text-[10px] text-green-500 font-bold uppercase mb-3 flex items-center gap-2">
+                                    <i data-lucide="check-circle" class="w-3 h-3"></i> Pros
+                                </h4>
+                                <ul id="modal-pros-list" class="space-y-2">
+                                    <!-- Rendered by JS -->
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 class="text-[10px] text-red-500 font-bold uppercase mb-3 flex items-center gap-2">
+                                    <i data-lucide="x-circle" class="w-3 h-3"></i> Cons
+                                </h4>
+                                <ul id="modal-cons-list" class="space-y-2">
+                                    <!-- Rendered by JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ VIEW: AUTH ═══════════════════════════════════════ -->
+    <div class="view active z-50" id="view-auth">
+        <div
+            class="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-black/40 backdrop-blur-sm">
+            <!-- Background Glow Effects -->
+            <div
+                class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[120px] pointer-events-none">
+            </div>
+            <div
+                class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-white/5 rounded-full blur-[120px] pointer-events-none">
+            </div>
+
+            <!-- Logo Section -->
+            <div class="mb-12 text-center animate-fade-in">
+                <div class="relative inline-block">
+                    <div class="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-150 opacity-50"></div>
+                    <img src="assets/u_cluj_logo.png" alt="U"
+                        class="relative w-24 h-24 object-contain brightness-110 contrast-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">
+                </div>
+                <h1 class="text-white text-3xl font-bold tracking-tight mt-6 font-geist">U-Scout AI</h1>
+                <p class="text-neutral-500 text-sm mt-2">Enterprise Scouting & Analytics</p>
+            </div>
+
+            <!-- Auth Card -->
+            <div
+                class="w-full max-w-md bg-[#0a0a0a]/80 backdrop-blur-xl border border-neutral-800 p-8 rounded-2xl shadow-2xl relative z-10">
+                <!-- Tabs -->
+                <div class="flex p-1 bg-neutral-900/50 rounded-lg mb-8">
+                    <button id="tab-signin"
+                        class="flex-1 py-2 text-sm font-medium rounded-md transition-all bg-white text-black shadow-lg">Sign
+                        In</button>
+                    <button id="tab-signup"
+                        class="flex-1 py-2 text-sm font-medium rounded-md transition-all text-neutral-400 hover:text-white">Sign
+                        Up</button>
+                </div>
+
+                <!-- Sign In Form -->
+                <div id="form-signin" class="space-y-5">
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Email
+                            Address</label>
+                        <input type="email" id="signin-email" placeholder="manager@ucluj.ro"
+                            class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder:text-neutral-700 outline-none focus:border-white transition-colors font-geist">
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <label
+                                class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Password</label>
+                            <a href="#" class="text-xs text-neutral-500 hover:text-white transition-colors">Forgot
+                                password?</a>
+                        </div>
+                        <input type="password" id="signin-password" placeholder="••••••••"
+                            class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder:text-neutral-700 outline-none focus:border-white transition-colors font-geist">
+                    </div>
+
+                    <div class="flex items-center space-x-2 pt-1">
+                        <div class="relative flex items-center">
+                            <input type="checkbox" id="remember-me"
+                                class="peer h-4 w-4 appearance-none rounded border border-neutral-800 bg-black checked:bg-white checked:border-white transition-all cursor-pointer">
+                            <i data-lucide="check"
+                                class="absolute h-3 w-3 text-black opacity-0 peer-checked:opacity-100 left-0.5 pointer-events-none transition-opacity"></i>
+                        </div>
+                        <label for="remember-me" class="text-sm text-neutral-400 cursor-pointer select-none">Remember
+                            this device</label>
+                    </div>
+
+                    <button id="btn-signin-submit"
+                        class="w-full bg-white text-black font-bold py-3.5 rounded-lg hover:bg-neutral-200 transition-all flex items-center justify-center space-x-2 group mt-4">
+                        <span>Sign In</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                        <div id="signin-loader"
+                            class="hidden w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin ml-2">
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Sign Up Form (Hidden by default) -->
+                <div id="form-signup" class="hidden space-y-5">
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Full Name</label>
+                        <input type="text" placeholder="Scout Manager"
+                            class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder:text-neutral-700 outline-none focus:border-white transition-colors font-geist">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Email
+                            Address</label>
+                        <input type="email" placeholder="scout@ucluj.ro"
+                            class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder:text-neutral-700 outline-none focus:border-white transition-colors font-geist">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Create
+                            Password</label>
+                        <input type="password" placeholder="••••••••"
+                            class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-white placeholder:text-neutral-700 outline-none focus:border-white transition-colors font-geist">
+                    </div>
+
+                    <button id="btn-signup-submit"
+                        class="w-full bg-white text-black font-bold py-3.5 rounded-lg hover:bg-neutral-200 transition-all mt-4 flex items-center justify-center space-x-2">
+                        <span>Create Account</span>
+                        <div id="signup-loader"
+                            class="hidden w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin ml-2">
+                        </div>
+                    </button>
+                </div>
+
+                <div class="relative my-8">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-neutral-800"></div>
+                    </div>
+                    <div class="relative flex justify-center text-xs uppercase"><span
+                            class="bg-[#0a0a0a] px-3 text-neutral-500 font-geist">sau continuă cu</span></div>
+                </div>
+
+                <button
+                    class="w-full bg-transparent border border-neutral-800 text-white py-3 rounded-lg hover:bg-white/5 transition-all flex items-center justify-center space-x-3 group">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="currentColor"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                            fill="#4285F4" />
+                        <path fill="currentColor"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                            fill="#34A853" />
+                        <path fill="currentColor"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                            fill="#FBBC05" />
+                        <path fill="currentColor"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                            fill="#EA4335" />
+                    </svg>
+                    <span class="text-sm font-medium">Sign in with Google</span>
+                </button>
+            </div>
+
+            <p class="mt-8 text-neutral-600 text-xs text-center max-w-[280px] leading-relaxed">
+                Accesul este permis doar membrilor autorizați ai departamentului de scouting <span
+                    class="text-neutral-400">Universitatea Cluj</span>.
+            </p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
